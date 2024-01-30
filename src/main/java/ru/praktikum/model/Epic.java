@@ -16,10 +16,10 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class Epic extends Task {
-    private List<SubTask> subTasks;
+    private List<Long> subTasksIds;
 
     public Epic(Long id, String name, String description, TaskStatus status, TaskType type) {
         super(id, name, description, status, type);
-        this.subTasks = new ArrayList<>();
+        this.subTasksIds = new ArrayList<>();
     }
 }
