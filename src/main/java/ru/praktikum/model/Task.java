@@ -15,9 +15,9 @@ import ru.praktikum.model.enums.TaskType;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Task {
-    private Long id;
-    private String name;
-    private String description;
-    private TaskStatus status;
-    private TaskType type;
+    protected Long id;
+    protected String name;
+    protected String description;
+    protected TaskStatus status;
+    protected TaskType type;
 }
