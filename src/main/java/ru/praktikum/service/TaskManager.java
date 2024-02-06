@@ -9,13 +9,13 @@ import java.util.Optional;
 
 public interface TaskManager {
 
-    Optional<? extends Task> addNewTask(Task task);
+    Optional<Task> addNewTask(Task task);
 
-    Task getTaskByIdAndType(Long id, TaskType type);
+    Optional<Task> getTaskByIdAndType(Long id, TaskType type);
 
     Task updateTask(Task task);
 
-    Task deleteTaskByIdAndType(Long id, TaskType type);
+    void deleteTaskByIdAndType(Long id, TaskType type);
 
     void deleteAllTasksByType(TaskType type);
 

@@ -6,10 +6,7 @@ import ru.praktikum.model.Task;
 import ru.praktikum.model.enums.TaskStatus;
 import ru.praktikum.model.enums.TaskType;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static ru.praktikum.model.enums.TaskStatus.*;
 
@@ -25,17 +22,17 @@ public class InMemoryTaskManager implements TaskManager {
     private Long id = 1L;
 
     @Override
-    public Optional<? extends Task> addNewTask(Task task) {
+    public Optional<Task> addNewTask(Task task) {
         TaskType type = task.getType();
         switch (type) {
             case TASK -> {
                 return addTask(task);
             }
             case SUBTASK -> {
-                return addSubTask((SubTask) task);
+                return addSubTask(task);
             }
             case EPIC_TASK -> {
-                return addEpicTask((EpicTask) task);
+                return addEpicTask(task);
             }
             default -> {
                 System.out.println("Укажите корректный тип задачи");
@@ -45,8 +42,22 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task getTaskByIdAndType(Long id, TaskType type) {
-        return null;
+    public Optional<Task> getTaskByIdAndType(Long id, TaskType type) {
+        switch (type) {
+            case TASK -> {
+                return Optional.ofNullable(tasks.get(id));
+            }
+            case SUBTASK -> {
+                return Optional.ofNullable(subTasks.get(id));
+            }
+            case EPIC_TASK -> {
+                return Optional.ofNullable(epicTasks.get(id));
+            }
+            default -> {
+                System.out.println("Задача не найдена");
+                return Optional.empty();
+            }
+        }
     }
 
     @Override
@@ -55,23 +66,53 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task deleteTaskByIdAndType(Long id, TaskType type) {
-        return null;
+    public void deleteTaskByIdAndType(Long id, TaskType type) {
+        switch (type) {
+            case TASK -> tasks.remove(id);
+            case SUBTASK -> deleteSubTaskById(id);
+            case EPIC_TASK -> deleteEpicTaskById(id);
+            default -> System.out.println("Задача не найдена");
+        }
     }
 
     @Override
     public void deleteAllTasksByType(TaskType type) {
-
+        switch (type) {
+            case TASK -> tasks.clear();
+            case SUBTASK -> subTasks.clear();
+            case EPIC_TASK -> epicTasks.clear();
+            default -> System.out.println("Тип задачи введен некорректно");
+        }
     }
 
     @Override
     public List<Task> getAllTasksByType(TaskType type) {
-        return null;
+        switch (type) {
+            case TASK -> {
+                return new ArrayList<>(tasks.values());
+            }
+            case SUBTASK -> {
+                return new ArrayList<>(subTasks.values());
+            }
+            case EPIC_TASK -> {
+                return new ArrayList<>(epicTasks.values());
+            }
+            default -> {
+                System.out.println("Тип задачи введен некорректно");
+                return new ArrayList<>();
+            }
+        }
     }
 
     @Override
     public List<SubTask> getAllSubTasksByEpicId(Long id) {
-        return null;
+        if (epicTasks.containsKey(id)) {
+            EpicTask epicTask = epicTasks.get(id);
+            return epicTask.getSubTasksIds().stream()
+                    .map(subTasks::get)
+                    .toList();
+        }
+        return new ArrayList<>();
     }
 
     private Optional<Task> addTask(Task task) {
@@ -80,7 +121,8 @@ public class InMemoryTaskManager implements TaskManager {
         return Optional.of(task);
     }
 
-    private Optional<SubTask> addSubTask(SubTask subTask) {
+    private Optional<Task> addSubTask(Task task) {
+        SubTask subTask = (SubTask) task;
         Long epicId = subTask.getEpicId();
         if (epicTasks.containsKey(epicId)) {
             EpicTask epicTask = epicTasks.get(epicId);
@@ -94,10 +136,28 @@ public class InMemoryTaskManager implements TaskManager {
         return Optional.empty();
     }
 
-    private Optional<EpicTask> addEpicTask(EpicTask epicTask) {
+    private Optional<Task> addEpicTask(Task task) {
+        EpicTask epicTask = (EpicTask) task;
         epicTask.setId(id++);
         epicTasks.put(epicTask.getId(), epicTask);
+        updateEpicTaskStatus(epicTask.getId());
         return Optional.of(epicTask);
+    }
+
+    private void deleteSubTaskById(Long id) {
+        if (subTasks.containsKey(id)) {
+            SubTask removedSubTask = subTasks.remove(id);
+            EpicTask epicTask = epicTasks.get(removedSubTask.getEpicId());
+            epicTask.getSubTasksIds().remove(id);
+            updateEpicTaskStatus(removedSubTask.getEpicId());
+        }
+    }
+
+    private void deleteEpicTaskById(Long id) {
+        if (epicTasks.containsKey(id)) {
+            EpicTask removedEpicTask = epicTasks.remove(id);
+            removedEpicTask.getSubTasksIds().forEach(subTasks::remove);
+        }
     }
 
     private void updateEpicTaskStatus(Long epicId) {
@@ -129,4 +189,5 @@ public class InMemoryTaskManager implements TaskManager {
         }
         return IN_PROGRESS;
     }
+
 }
