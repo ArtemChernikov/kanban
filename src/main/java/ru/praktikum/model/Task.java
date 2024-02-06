@@ -1,8 +1,8 @@
 package ru.praktikum.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import ru.praktikum.model.enums.TaskStatus;
 import ru.praktikum.model.enums.TaskType;
 
@@ -12,12 +12,19 @@ import ru.praktikum.model.enums.TaskType;
  * @since 29.01.2024
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@SuperBuilder
 public class Task {
     protected Long id;
     protected String name;
     protected String description;
     protected TaskStatus status;
     protected TaskType type;
+
+    public Task(String name, String description, TaskStatus status, TaskType type) {
+        this.name = name;
+        this.description = description;
+        this.status = status;
+        this.type = type;
+    }
 }

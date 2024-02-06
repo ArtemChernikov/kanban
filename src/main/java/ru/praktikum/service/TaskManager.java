@@ -5,16 +5,17 @@ import ru.praktikum.model.Task;
 import ru.praktikum.model.enums.TaskType;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TaskManager {
 
-    void addNewTask(Task task);
+    Optional<? extends Task> addNewTask(Task task);
 
     Task getTaskByIdAndType(Long id, TaskType type);
 
-    void updateTask(Task task);
+    Task updateTask(Task task);
 
-    void deleteTaskByIdAndType(Long id, TaskType type);
+    Task deleteTaskByIdAndType(Long id, TaskType type);
 
     void deleteAllTasksByType(TaskType type);
 

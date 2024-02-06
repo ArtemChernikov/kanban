@@ -1,6 +1,7 @@
 package ru.praktikum.model;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import ru.praktikum.model.enums.TaskStatus;
 import ru.praktikum.model.enums.TaskType;
 
@@ -11,13 +12,14 @@ import ru.praktikum.model.enums.TaskType;
  */
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@SuperBuilder
 @Getter
 @Setter
 public class SubTask extends Task {
     private Long epicId;
 
-    public SubTask(Long id, String name, String description, TaskStatus status, TaskType type, Long epicId) {
-        super(id, name, description, status, type);
+    public SubTask(String name, String description, TaskStatus status, TaskType type, Long epicId) {
+        super(name, description, status, type);
         this.epicId = epicId;
     }
 

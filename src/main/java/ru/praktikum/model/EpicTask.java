@@ -1,6 +1,7 @@
 package ru.praktikum.model;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import ru.praktikum.model.enums.TaskStatus;
 import ru.praktikum.model.enums.TaskType;
 
@@ -14,19 +15,23 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@SuperBuilder
 @Getter
 @Setter
-public class Epic extends Task {
-    private List<Long> subTasksIds;
+public class EpicTask extends Task {
+    private List<Long> subTasksIds = new ArrayList<>();
 
-    public Epic(Long id, String name, String description, TaskStatus status, TaskType type) {
-        super(id, name, description, status, type);
-        this.subTasksIds = new ArrayList<>();
+    public EpicTask(String name, String description, TaskStatus status, TaskType type) {
+        super(name, description, status, type);
+    }
+
+    public void addSubTaskId(Long subTaskId) {
+        subTasksIds.add(subTaskId);
     }
 
     @Override
     public String toString() {
-        return "Epic{" +
+        return "EpicTask{" +
                 "subTasksIds=" + subTasksIds +
                 ", id=" + id +
                 ", name='" + name + '\'' +
