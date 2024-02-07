@@ -13,7 +13,7 @@ public interface TaskManager {
 
     Optional<Task> getTaskByIdAndType(Long id, TaskType type);
 
-    Task updateTask(Task task);
+    void updateTask(Task task);
 
     void deleteTaskByIdAndType(Long id, TaskType type);
 

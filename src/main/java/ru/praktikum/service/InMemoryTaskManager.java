@@ -61,8 +61,14 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task updateTask(Task task) {
-        return null;
+    public void updateTask(Task task) {
+        TaskType type = task.getType();
+        switch (type) {
+            case TASK -> tasks.computeIfPresent(task.getId(), (key, value) -> task);
+            case SUBTASK -> updateSubTask((SubTask) task);
+            case EPIC_TASK -> updateEpicTask((EpicTask) task);
+            default -> System.out.println("Указан некорректный TaskType");
+        }
     }
 
     @Override
@@ -142,6 +148,23 @@ public class InMemoryTaskManager implements TaskManager {
         epicTasks.put(epicTask.getId(), epicTask);
         updateEpicTaskStatus(epicTask.getId());
         return Optional.of(epicTask);
+    }
+
+    private void updateSubTask(SubTask subTask) {
+        Long subTaskId = subTask.getId();
+        subTasks.computeIfPresent(subTaskId, (key, value) -> {
+            Long epicId = subTask.getEpicId();
+            updateEpicTaskStatus(epicId);
+            return subTask;
+        });
+    }
+
+    private void updateEpicTask(EpicTask epicTask) {
+        Long epicTaskId = epicTask.getId();
+        epicTasks.computeIfPresent(epicTaskId, (key, value) -> {
+            updateEpicTaskStatus(epicTaskId);
+            return epicTask;
+        });
     }
 
     private void deleteSubTaskById(Long id) {
