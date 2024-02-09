@@ -5,6 +5,7 @@ import ru.praktikum.model.SubTask;
 import ru.praktikum.model.Task;
 import ru.praktikum.model.enums.TaskStatus;
 import ru.praktikum.model.enums.TaskType;
+import ru.praktikum.util.Managers;
 
 import java.util.*;
 
@@ -16,25 +17,11 @@ import static ru.praktikum.model.enums.TaskStatus.*;
  * @since 04.02.2024
  */
 public class InMemoryTaskManager implements TaskManager {
-    private static final int MAX_HISTORY_SIZE = 10;
-    private static final int FIRST_HISTORY_ELEMENT = 0;
     private final Map<Long, Task> tasks = new HashMap<>();
     private final Map<Long, SubTask> subTasks = new HashMap<>();
     private final Map<Long, EpicTask> epicTasks = new HashMap<>();
-    private final List<Task> history = new ArrayList<>();
+    private final HistoryManager historyManager = Managers.getDefaultHistory();
     private Long id = 1L;
-
-    @Override
-    public List<Task> getHistory() {
-        return new ArrayList<>(history);
-    }
-
-    private void addTaskToHistory(Task task) {
-        if (history.size() == MAX_HISTORY_SIZE) {
-            history.remove(FIRST_HISTORY_ELEMENT);
-        }
-        history.add(task);
-    }
 
     @Override
     public Optional<Task> addNewTask(Task task) {
@@ -67,7 +54,7 @@ public class InMemoryTaskManager implements TaskManager {
                     return Optional.empty();
                 }
                 Task task = tasks.get(id);
-                addTaskToHistory(task);
+                historyManager.add(task);
                 return Optional.of(task);
             }
             case SUBTASK -> {
@@ -75,7 +62,7 @@ public class InMemoryTaskManager implements TaskManager {
                     return Optional.empty();
                 }
                 SubTask subTask = subTasks.get(id);
-                addTaskToHistory(subTask);
+                historyManager.add(subTask);
                 return Optional.of(subTask);
             }
             case EPIC_TASK -> {
@@ -83,7 +70,7 @@ public class InMemoryTaskManager implements TaskManager {
                     return Optional.empty();
                 }
                 EpicTask epicTask = epicTasks.get(id);
-                addTaskToHistory(epicTask);
+                historyManager.add(epicTask);
                 return Optional.of(epicTask);
             }
             default -> {
@@ -152,6 +139,11 @@ public class InMemoryTaskManager implements TaskManager {
                     .toList();
         }
         return new ArrayList<>();
+    }
+
+    @Override
+    public List<Task> getHistory() {
+        return historyManager.getHistory();
     }
 
     private Optional<Task> addTask(Task task) {

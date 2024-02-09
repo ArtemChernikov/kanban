@@ -1,5 +1,7 @@
 package ru.praktikum.util;
 
+import ru.praktikum.service.HistoryManager;
+import ru.praktikum.service.InMemoryHistoryManager;
 import ru.praktikum.service.InMemoryTaskManager;
 import ru.praktikum.service.TaskManager;
 
@@ -15,5 +17,9 @@ public class Managers {
 
     public static TaskManager getDefault() {
         return new InMemoryTaskManager();
+    }
+
+    public static HistoryManager getDefaultHistory() {
+        return new InMemoryHistoryManager();
     }
 }
