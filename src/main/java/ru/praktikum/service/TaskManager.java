@@ -23,4 +23,6 @@ public interface TaskManager {
 
     List<SubTask> getAllSubTasksByEpicId(Long id);
 
+    List<Task> getHistory();
+
 }

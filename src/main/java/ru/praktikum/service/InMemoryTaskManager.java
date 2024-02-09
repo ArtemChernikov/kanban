@@ -16,10 +16,25 @@ import static ru.praktikum.model.enums.TaskStatus.*;
  * @since 04.02.2024
  */
 public class InMemoryTaskManager implements TaskManager {
+    private static final int MAX_HISTORY_SIZE = 10;
+    private static final int FIRST_HISTORY_ELEMENT = 0;
     private final Map<Long, Task> tasks = new HashMap<>();
     private final Map<Long, SubTask> subTasks = new HashMap<>();
     private final Map<Long, EpicTask> epicTasks = new HashMap<>();
+    private final List<Task> history = new ArrayList<>();
     private Long id = 1L;
+
+    @Override
+    public List<Task> getHistory() {
+        return new ArrayList<>(history);
+    }
+
+    private void addTaskToHistory(Task task) {
+        if (history.size() == MAX_HISTORY_SIZE) {
+            history.remove(FIRST_HISTORY_ELEMENT);
+        }
+        history.add(task);
+    }
 
     @Override
     public Optional<Task> addNewTask(Task task) {
@@ -43,15 +58,33 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Optional<Task> getTaskByIdAndType(Long id, TaskType type) {
+        if (!tasks.containsKey(id) && !subTasks.containsKey(id) && !epicTasks.containsKey(id)) {
+            return Optional.empty();
+        }
         switch (type) {
             case TASK -> {
-                return Optional.ofNullable(tasks.get(id));
+                if (!tasks.containsKey(id)) {
+                    return Optional.empty();
+                }
+                Task task = tasks.get(id);
+                addTaskToHistory(task);
+                return Optional.of(task);
             }
             case SUBTASK -> {
-                return Optional.ofNullable(subTasks.get(id));
+                if (!subTasks.containsKey(id)) {
+                    return Optional.empty();
+                }
+                SubTask subTask = subTasks.get(id);
+                addTaskToHistory(subTask);
+                return Optional.of(subTask);
             }
             case EPIC_TASK -> {
-                return Optional.ofNullable(epicTasks.get(id));
+                if (!epicTasks.containsKey(id)) {
+                    return Optional.empty();
+                }
+                EpicTask epicTask = epicTasks.get(id);
+                addTaskToHistory(epicTask);
+                return Optional.of(epicTask);
             }
             default -> {
                 System.out.println("Задача не найдена");
