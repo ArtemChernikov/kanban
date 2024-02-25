@@ -16,8 +16,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @SuperBuilder
-@Getter
-@Setter
 public class EpicTask extends Task {
     private List<Long> subTasksIds = new ArrayList<>();
 
@@ -25,8 +23,16 @@ public class EpicTask extends Task {
         super(name, description, status, type);
     }
 
+    public List<Long> getSubTasksIds() {
+        return new ArrayList<>(subTasksIds);
+    }
+
     public void addSubTaskId(Long subTaskId) {
         subTasksIds.add(subTaskId);
+    }
+
+    public void deleteSubTaskId(Long subTaskId) {
+        subTasksIds.remove(subTaskId);
     }
 
     @Override

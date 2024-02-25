@@ -105,8 +105,14 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteAllTasksByType(TaskType type) {
         switch (type) {
             case TASK -> tasks.clear();
-            case SUBTASK -> subTasks.clear();
-            case EPIC_TASK -> epicTasks.clear();
+            case SUBTASK -> {
+                subTasks.clear();
+                epicTasks.values().forEach(epicTask -> epicTask.setStatus(NEW));
+            }
+            case EPIC_TASK -> {
+                epicTasks.clear();
+                subTasks.clear();
+            }
             default -> System.out.println("Тип задачи введен некорректно");
         }
     }
@@ -196,7 +202,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (subTasks.containsKey(id)) {
             SubTask removedSubTask = subTasks.remove(id);
             EpicTask epicTask = epicTasks.get(removedSubTask.getEpicId());
-            epicTask.getSubTasksIds().remove(id);
+            epicTask.deleteSubTaskId(id);
             updateEpicTaskStatus(removedSubTask.getEpicId());
         }
     }
