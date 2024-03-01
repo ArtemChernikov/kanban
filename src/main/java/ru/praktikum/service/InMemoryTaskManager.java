@@ -5,7 +5,6 @@ import ru.praktikum.model.SubTask;
 import ru.praktikum.model.Task;
 import ru.praktikum.model.enums.TaskStatus;
 import ru.praktikum.model.enums.TaskType;
-import ru.praktikum.util.Managers;
 
 import java.util.*;
 
@@ -20,8 +19,12 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Long, Task> tasks = new HashMap<>();
     private final Map<Long, SubTask> subTasks = new HashMap<>();
     private final Map<Long, EpicTask> epicTasks = new HashMap<>();
-    private final HistoryManager historyManager = Managers.getDefaultHistory();
+    private final HistoryManager historyManager;
     private Long id = 1L;
+
+    public InMemoryTaskManager(HistoryManager historyManager) {
+        this.historyManager = historyManager;
+    }
 
     @Override
     public Optional<Task> addNewTask(Task task) {
