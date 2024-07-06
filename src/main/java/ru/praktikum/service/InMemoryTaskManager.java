@@ -97,9 +97,18 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteTaskByIdAndType(Long id, TaskType type) {
         switch (type) {
-            case TASK -> tasks.remove(id);
-            case SUBTASK -> deleteSubTaskById(id);
-            case EPIC_TASK -> deleteEpicTaskById(id);
+            case TASK -> {
+                tasks.remove(id);
+                historyManager.remove(id);
+            }
+            case SUBTASK -> {
+                deleteSubTaskById(id);
+                historyManager.remove(id);
+            }
+            case EPIC_TASK -> {
+                deleteEpicTaskById(id);
+                historyManager.remove(id);
+            }
             default -> System.out.println("Задача не найдена");
         }
     }
@@ -107,15 +116,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteAllTasksByType(TaskType type) {
         switch (type) {
-            case TASK -> tasks.clear();
-            case SUBTASK -> {
-                subTasks.clear();
-                epicTasks.values().forEach(epicTask -> epicTask.setStatus(NEW));
-            }
-            case EPIC_TASK -> {
-                epicTasks.clear();
-                subTasks.clear();
-            }
+            case TASK -> deleteAllTasks();
+            case SUBTASK -> deleteAllSubtasks();
+            case EPIC_TASK -> deleteAllEpicTasks();
             default -> System.out.println("Тип задачи введен некорректно");
         }
     }
@@ -198,6 +201,28 @@ public class InMemoryTaskManager implements TaskManager {
         epicTasks.computeIfPresent(epicTaskId, (key, value) -> {
             updateEpicTaskStatus(epicTaskId);
             return epicTask;
+        });
+    }
+
+    private void deleteAllTasks() {
+        tasks.keySet().forEach(historyManager::remove);
+        tasks.clear();
+    }
+
+    private void deleteAllSubtasks() {
+        subTasks.keySet().forEach(historyManager::remove);
+        subTasks.clear();
+        epicTasks.values().forEach(epicTask -> epicTask.setStatus(NEW));
+    }
+
+    private void deleteAllEpicTasks() {
+        subTasks.keySet().forEach(id -> {
+            historyManager.remove(id);
+            subTasks.remove(id);
+        });
+        epicTasks.keySet().forEach(id -> {
+            historyManager.remove(id);
+            epicTasks.remove(id);
         });
     }
 

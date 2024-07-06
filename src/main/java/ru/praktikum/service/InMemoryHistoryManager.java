@@ -28,11 +28,11 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public void remove(long id) {
         history.removeNode(historyTaskMap.get(id));
+        historyTaskMap.remove(id);
     }
 
     @Override
     public List<Task> getHistory() {
-
         return history.getTasks();
     }
 }
@@ -40,7 +40,6 @@ public class InMemoryHistoryManager implements HistoryManager {
 class CustomLinkedList<T> {
     private Node<T> head;
     private Node<T> tail;
-    private int size = 0;
 
     public Node<T> listLast(T element) {
         Node<T> newNode = new Node<>(null, element, null);
@@ -51,7 +50,6 @@ class CustomLinkedList<T> {
             newNode.prev = tail;
         }
         tail = newNode;
-        size++;
         return newNode;
     }
 
@@ -82,6 +80,5 @@ class CustomLinkedList<T> {
             head = null;
             tail = null;
         }
-        size--;
     }
 }
