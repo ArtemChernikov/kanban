@@ -22,13 +22,15 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (historyTaskMap.containsKey(task.getId())) {
             remove(task.getId());
         }
-        historyTaskMap.put(task.getId(), history.listLast(task));
+        historyTaskMap.put(task.getId(), history.linkLast(task));
     }
 
     @Override
     public void remove(long id) {
-        history.removeNode(historyTaskMap.get(id));
-        historyTaskMap.remove(id);
+        if (historyTaskMap.containsKey(id)) {
+            history.removeNode(historyTaskMap.get(id));
+            historyTaskMap.remove(id);
+        }
     }
 
     @Override
@@ -41,7 +43,7 @@ class CustomLinkedList<T> {
     private Node<T> head;
     private Node<T> tail;
 
-    public Node<T> listLast(T element) {
+    public Node<T> linkLast(T element) {
         Node<T> newNode = new Node<>(null, element, null);
         if (head == null) {
             head = newNode;
