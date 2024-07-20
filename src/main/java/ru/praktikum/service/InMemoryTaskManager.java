@@ -9,11 +9,11 @@ import ru.praktikum.model.enums.TaskType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static ru.praktikum.model.enums.TaskStatus.NEW;
 import static ru.praktikum.util.Constants.INCORRECT_TASK_TYPE_MESSAGE;
 import static ru.praktikum.util.Constants.TASK_NOT_FOUND_MESSAGE;
 
@@ -120,7 +120,8 @@ public class InMemoryTaskManager implements TaskManager {
             case TASK -> deleteAllTasks();
             case SUBTASK -> deleteAllSubtasks();
             case EPIC_TASK -> deleteAllEpicTasks();
-            default -> throw new ValidationException(INCORRECT_TASK_TYPE_MESSAGE);        }
+            default -> throw new ValidationException(INCORRECT_TASK_TYPE_MESSAGE);
+        }
     }
 
     @Override
@@ -207,18 +208,23 @@ public class InMemoryTaskManager implements TaskManager {
     private void deleteAllSubtasks() {
         subTasks.keySet().forEach(historyManager::remove);
         subTasks.clear();
-        epicTasks.values().forEach(epicTask -> epicTask.setStatus(NEW));
+        epicTasks.values().forEach(EpicTask::updateStatus);
     }
 
     private void deleteAllEpicTasks() {
-        subTasks.keySet().forEach(id -> {
-            historyManager.remove(id);
-            subTasks.remove(id);
-        });
-        epicTasks.keySet().forEach(id -> {
-            historyManager.remove(id);
-            epicTasks.remove(id);
-        });
+        Iterator<Long> subTasksIterator = subTasks.keySet().iterator();
+        while (subTasksIterator.hasNext()) {
+            Long subTaskId = subTasksIterator.next();
+            historyManager.remove(subTaskId);
+            subTasksIterator.remove();
+        }
+
+        Iterator<Long> epicTasksIterator = epicTasks.keySet().iterator();
+        while (epicTasksIterator.hasNext()) {
+            Long epicTaskId = epicTasksIterator.next();
+            historyManager.remove(epicTaskId);
+            epicTasksIterator.remove();
+        }
     }
 
     private void deleteSubTaskById(Long id) {
@@ -235,6 +241,22 @@ public class InMemoryTaskManager implements TaskManager {
             EpicTask removedEpicTask = epicTasks.remove(id);
             removedEpicTask.getSubTasksIds().forEach(subTasks::remove);
         }
+    }
+
+    public Map<Long, Task> getTasks() {
+        return tasks;
+    }
+
+    public Map<Long, SubTask> getSubTasks() {
+        return subTasks;
+    }
+
+    public Map<Long, EpicTask> getEpicTasks() {
+        return epicTasks;
+    }
+
+    public void setNextId(long nextId) {
+        this.id = nextId;
     }
 
 }

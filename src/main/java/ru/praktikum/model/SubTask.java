@@ -27,6 +27,16 @@ public class SubTask extends Task {
         super(name, description, status, type);
     }
 
+    public SubTask(Long id, String name, String description, TaskStatus status, TaskType type, EpicTask epicTask) {
+        super(id, name, description, status, type);
+        this.epicTask = epicTask;
+    }
+
+    @Override
+    public String toCSV() {
+        return id + "," + type + "," + name + "," + status + "," + description + "," + epicTask.getId();
+    }
+
     @Override
     public String toString() {
         return "SubTask{" +

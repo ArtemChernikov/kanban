@@ -29,4 +29,12 @@ public class Task {
         this.status = status;
         this.type = type;
     }
+
+    public Task(Long id) {
+        this.id = id;
+    }
+
+    public String toCSV() {
+        return id + "," + type + "," + name + "," + status + "," + description;
+    }
 }

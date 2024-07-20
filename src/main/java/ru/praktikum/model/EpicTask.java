@@ -32,6 +32,10 @@ public class EpicTask extends Task {
         super(id, name, description, status, type);
     }
 
+    public EpicTask(Long id) {
+        super(id);
+    }
+
     public void updateStatus() {
         TaskStatus taskStatus = IN_PROGRESS;
         if (subTasks.isEmpty()) {
