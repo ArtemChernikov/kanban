@@ -1,5 +1,6 @@
 package ru.praktikum.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -13,6 +14,7 @@ import ru.praktikum.model.enums.TaskType;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @SuperBuilder
 public class Task {
     protected Long id;

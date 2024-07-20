@@ -16,17 +16,21 @@ import ru.praktikum.model.enums.TaskType;
 @Getter
 @Setter
 public class SubTask extends Task {
-    private Long epicId;
+    private EpicTask epicTask;
 
-    public SubTask(String name, String description, TaskStatus status, TaskType type, Long epicId) {
+    public SubTask(String name, String description, TaskStatus status, TaskType type, EpicTask epicTask) {
         super(name, description, status, type);
-        this.epicId = epicId;
+        this.epicTask = epicTask;
+    }
+
+    public SubTask(String name, String description, TaskStatus status, TaskType type) {
+        super(name, description, status, type);
     }
 
     @Override
     public String toString() {
         return "SubTask{" +
-                "epicId=" + epicId +
+                "epicId=" + epicTask.getId() +
                 ", id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +

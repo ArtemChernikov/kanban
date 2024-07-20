@@ -1,14 +1,21 @@
 package ru.praktikum.service;
 
+import ru.praktikum.exception.NotFoundException;
+import ru.praktikum.exception.ValidationException;
 import ru.praktikum.model.EpicTask;
 import ru.praktikum.model.SubTask;
 import ru.praktikum.model.Task;
-import ru.praktikum.model.enums.TaskStatus;
 import ru.praktikum.model.enums.TaskType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import static ru.praktikum.model.enums.TaskStatus.*;
+import static ru.praktikum.model.enums.TaskStatus.NEW;
+import static ru.praktikum.util.Constants.INCORRECT_TASK_TYPE_MESSAGE;
+import static ru.praktikum.util.Constants.TASK_NOT_FOUND_MESSAGE;
 
 /**
  * @author Artem Chernikov
@@ -39,10 +46,7 @@ public class InMemoryTaskManager implements TaskManager {
             case EPIC_TASK -> {
                 return addEpicTask(task);
             }
-            default -> {
-                System.out.println("Укажите корректный тип задачи");
-                return Optional.empty();
-            }
+            default -> throw new ValidationException(INCORRECT_TASK_TYPE_MESSAGE);
         }
     }
 
@@ -76,10 +80,7 @@ public class InMemoryTaskManager implements TaskManager {
                 historyManager.add(epicTask);
                 return Optional.of(epicTask);
             }
-            default -> {
-                System.out.println("Задача не найдена");
-                return Optional.empty();
-            }
+            default -> throw new NotFoundException(TASK_NOT_FOUND_MESSAGE);
         }
     }
 
@@ -90,7 +91,7 @@ public class InMemoryTaskManager implements TaskManager {
             case TASK -> tasks.computeIfPresent(task.getId(), (key, value) -> task);
             case SUBTASK -> updateSubTask((SubTask) task);
             case EPIC_TASK -> updateEpicTask((EpicTask) task);
-            default -> System.out.println("Указан некорректный TaskType");
+            default -> throw new ValidationException(INCORRECT_TASK_TYPE_MESSAGE);
         }
     }
 
@@ -109,7 +110,7 @@ public class InMemoryTaskManager implements TaskManager {
                 deleteEpicTaskById(id);
                 historyManager.remove(id);
             }
-            default -> System.out.println("Задача не найдена");
+            default -> throw new NotFoundException(TASK_NOT_FOUND_MESSAGE);
         }
     }
 
@@ -119,8 +120,7 @@ public class InMemoryTaskManager implements TaskManager {
             case TASK -> deleteAllTasks();
             case SUBTASK -> deleteAllSubtasks();
             case EPIC_TASK -> deleteAllEpicTasks();
-            default -> System.out.println("Тип задачи введен некорректно");
-        }
+            default -> throw new ValidationException(INCORRECT_TASK_TYPE_MESSAGE);        }
     }
 
     @Override
@@ -135,10 +135,7 @@ public class InMemoryTaskManager implements TaskManager {
             case EPIC_TASK -> {
                 return new ArrayList<>(epicTasks.values());
             }
-            default -> {
-                System.out.println("Тип задачи введен некорректно");
-                return new ArrayList<>();
-            }
+            default -> throw new ValidationException(INCORRECT_TASK_TYPE_MESSAGE);
         }
     }
 
@@ -166,16 +163,14 @@ public class InMemoryTaskManager implements TaskManager {
 
     private Optional<Task> addSubTask(Task task) {
         SubTask subTask = (SubTask) task;
-        Long epicId = subTask.getEpicId();
-        if (epicTasks.containsKey(epicId)) {
-            EpicTask epicTask = epicTasks.get(epicId);
+        EpicTask epicTask = subTask.getEpicTask();
+        if (epicTasks.containsKey(epicTask.getId())) {
             subTask.setId(id++);
-            epicTask.addSubTaskId(subTask.getId());
+            epicTask.addSubTask(subTask);
             subTasks.put(subTask.getId(), subTask);
-            updateEpicTaskStatus(epicId);
+            epicTask.updateStatus();
             return Optional.of(subTask);
         }
-        System.out.println("Укажите корректный идентификатор EpicTask у SubTask");
         return Optional.empty();
     }
 
@@ -183,15 +178,15 @@ public class InMemoryTaskManager implements TaskManager {
         EpicTask epicTask = (EpicTask) task;
         epicTask.setId(id++);
         epicTasks.put(epicTask.getId(), epicTask);
-        updateEpicTaskStatus(epicTask.getId());
+        epicTask.updateStatus();
         return Optional.of(epicTask);
     }
 
     private void updateSubTask(SubTask subTask) {
         Long subTaskId = subTask.getId();
         subTasks.computeIfPresent(subTaskId, (key, value) -> {
-            Long epicId = subTask.getEpicId();
-            updateEpicTaskStatus(epicId);
+            EpicTask epicTask = subTask.getEpicTask();
+            epicTask.updateStatus();
             return subTask;
         });
     }
@@ -199,7 +194,7 @@ public class InMemoryTaskManager implements TaskManager {
     private void updateEpicTask(EpicTask epicTask) {
         Long epicTaskId = epicTask.getId();
         epicTasks.computeIfPresent(epicTaskId, (key, value) -> {
-            updateEpicTaskStatus(epicTaskId);
+            epicTask.updateStatus();
             return epicTask;
         });
     }
@@ -229,9 +224,9 @@ public class InMemoryTaskManager implements TaskManager {
     private void deleteSubTaskById(Long id) {
         if (subTasks.containsKey(id)) {
             SubTask removedSubTask = subTasks.remove(id);
-            EpicTask epicTask = epicTasks.get(removedSubTask.getEpicId());
-            epicTask.deleteSubTaskId(id);
-            updateEpicTaskStatus(removedSubTask.getEpicId());
+            EpicTask epicTask = removedSubTask.getEpicTask();
+            epicTask.deleteSubTask(removedSubTask);
+            epicTask.updateStatus();
         }
     }
 
@@ -240,36 +235,6 @@ public class InMemoryTaskManager implements TaskManager {
             EpicTask removedEpicTask = epicTasks.remove(id);
             removedEpicTask.getSubTasksIds().forEach(subTasks::remove);
         }
-    }
-
-    private void updateEpicTaskStatus(Long epicId) {
-        EpicTask epicTask = epicTasks.get(epicId);
-        List<Long> subTasksIds = epicTask.getSubTasksIds();
-        epicTask.setStatus(getEpicTaskStatusBySubTasksStatuses(subTasksIds));
-    }
-
-    private TaskStatus getEpicTaskStatusBySubTasksStatuses(List<Long> subTasksIds) {
-        if (subTasksIds.isEmpty()) {
-            return NEW;
-        }
-        boolean isNew = true;
-        boolean isDone = true;
-        for (Long subTaskId : subTasksIds) {
-            TaskStatus oldSubTaskStatus = subTasks.get(subTaskId).getStatus();
-            if (!NEW.equals(oldSubTaskStatus)) {
-                isNew = false;
-            }
-            if (!DONE.equals(oldSubTaskStatus)) {
-                isDone = false;
-            }
-        }
-        if (isNew) {
-            return NEW;
-        }
-        if (isDone) {
-            return DONE;
-        }
-        return IN_PROGRESS;
     }
 
 }
