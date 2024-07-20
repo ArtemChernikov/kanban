@@ -1,8 +1,8 @@
 package ru.praktikum.util;
 
+import ru.praktikum.service.FileBackedTaskManager;
 import ru.praktikum.service.HistoryManager;
 import ru.praktikum.service.InMemoryHistoryManager;
-import ru.praktikum.service.InMemoryTaskManager;
 import ru.praktikum.service.TaskManager;
 
 /**
@@ -15,8 +15,8 @@ public class Managers {
         throw new IllegalStateException("Utility class");
     }
 
-    public static TaskManager getDefault(HistoryManager historyManager) {
-        return new InMemoryTaskManager(historyManager);
+    public static TaskManager getDefault(HistoryManager historyManager, String path) {
+        return new FileBackedTaskManager(historyManager, path);
     }
 
     public static HistoryManager getDefaultHistory() {
