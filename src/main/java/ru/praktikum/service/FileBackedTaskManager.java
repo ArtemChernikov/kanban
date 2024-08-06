@@ -137,8 +137,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private static void putDataFromFile(FileBackedTaskManager dataFromFile, StringBuilder stringFile) {
         List<Task> tasks = getAllTasksFromFile(dataFromFile, stringFile);
+        long nextId = 0;
 
         for (Task task : tasks) {
+            Long taskId = task.getId();
+            if (taskId > nextId) {
+                nextId = taskId;
+            }
             switch (task.getType()) {
                 case TASK -> dataFromFile.getTasks().put(task.getId(), task);
                 case SUBTASK -> dataFromFile.getSubTasks().put(task.getId(), (SubTask) task);
@@ -146,7 +151,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             }
         }
 
-        dataFromFile.setNextId(tasks.size() + 1);
+        dataFromFile.setNextId(nextId + 1);
 
         dataFromFile.getSubTasks().values().forEach(subTask -> {
             long epicId = subTask.getEpicTask().getId();

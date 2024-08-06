@@ -255,7 +255,7 @@ public class InMemoryTaskManager implements TaskManager {
         return epicTasks;
     }
 
-    public void setNextId(long nextId) {
+    protected void setNextId(long nextId) {
         this.id = nextId;
     }
 
