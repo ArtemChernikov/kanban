@@ -152,6 +152,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             long epicId = subTask.getEpicTask().getId();
             EpicTask epicTask = dataFromFile.getEpicTasks().get(epicId);
             epicTask.addSubTask(subTask);
+            subTask.setEpicTask(epicTask);
         });
     }
 
